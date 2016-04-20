@@ -2,12 +2,54 @@
 % vectors using three different variants of GAMP over the usual
 % sparsity/undersampling phase space.
 
-grid_size = [30, 30];
-rho_values = linspace(0.05, 0.95, grid_size(1));
-delta_values = linspace(0.05, 0.95, grid_size(2));
-reps = 100;
-N = 1000;
+newEM = false % set true to use new version of EMGMAMP
+disableDamp = true % set true to disable adaptive damping
 
+DEMO = 2;
+switch DEMO
+  case 1 % full phase plane
+    grid_size = [30, 30];
+    delta_values = linspace(0.05, 0.95, grid_size(2));
+    rho_values = linspace(0.05, 0.95, grid_size(1));
+    reps = 100;
+  case 2 % test difficult spot at (delta=0.3,rho=0.5)
+    grid_size = [1,1];
+    delta_values = 0.3;
+    rho_values = 0.5;
+    reps = 100;
+end
+
+% correct EMGMAMP path if needed
+EMGMpath = fileparts(which('EMGMAMP')); % current path to EMGM
+[GAMPdir,EMGMver] = fileparts(EMGMpath); % GAMPmatlab dir and EMGM version
+if newEM
+  if strcmp(EMGMver,'EMGMAMP')
+    rmpath(EMGMpath)
+    addpath([GAMPdir,'/EMGMAMPnew'])
+  end
+else 
+  if strcmp(EMGMver,'EMGMAMPnew')
+    rmpath(EMGMpath)
+    addpath([GAMPdir,'/EMGMAMP'])
+  end
+end
+
+% disable adaptive damping if needed
+if disableDamp
+  optGAMP.adaptStep = false;
+end
+
+% optionally improve some defaults
+if 1
+  if newEM
+    optGAMP.nit = 500; % use more iterations
+  else 
+    optGAMP.uniformVariance = true; % speeds things up
+  end
+end
+
+
+N = 1000;
 successes_EMBGAMP = zeros(grid_size);
 successes_genBGAMP = zeros(grid_size);
 
@@ -17,6 +59,7 @@ rng(42)
 for delta_idx = 1:grid_size(2)
     for rho_idx = 1:grid_size(1)
         for rep = 1:reps
+
             % Set M and K the same way as in EMGMAMPdemo.m and EMBGAMPdemo.m
             M = ceil(delta_values(delta_idx) * N);
             K = floor(rho_values(rho_idx) * M);
@@ -42,20 +85,20 @@ for delta_idx = 1:grid_size(2)
             optEM = struct('heavy_tailed', false);
 
             %Perform EMBGAMP
-            xhat_EMBGAMP = EMBGAMP(y, Amat, optEM);
+            xhat_EMBGAMP = EMBGAMP(y, Amat, optEM, optGAMP);
 
             %set options for genie BGAMP
-            optEM.lambda = K/M;
+            optEM.lambda = K/N; % THIS READ K/M !!
             optEM.active_mean = 0;
             optEM.active_var = 1;
-            optEM.noise_var = 0;
+            optEM.noise_var = eps; % SET >0 TO AVOID ANNOYING WARNING
             optEM.learn_lambda = false;
             optEM.learn_mean = false;
             optEM.learn_var = false;
             optEM.learn_noisevar = false;
 
             %Perform genie BGAMP
-            xhat_genBGAMP = EMBGAMP(y, Amat, optEM);
+            xhat_genBGAMP = EMBGAMP(y, Amat, optEM, optGAMP);
 
             %Evaluate success
             if norm(x-xhat_EMBGAMP)^2/norm(x)^2 < 1e-4
@@ -77,4 +120,46 @@ for delta_idx = 1:grid_size(2)
     end
 end
 
-save vila2011_results successes* rho_values delta_values reps
+if DEMO==1
+  save vila2011_results successes* rho_values delta_values reps
+end
+
+% display results
+if max(grid_size)>1
+
+  % imagesc plot of success
+  figure(1); clf;
+  imagesc(rho_values,delta_values,(1/reps)*successes_EMBGAMP); colorbar
+  set(gca,'YDir','normal')
+  set(gca,'YTick',rho_values)
+  if grid_size(2)<10, set(gca,'XTick',delta_values); end
+  ylabel('rho')
+  xlabel('delta')
+  title('EMBGAMP')
+  grid on
+
+  % imagesc plot of success
+  figure(2); clf;
+  imagesc(rho_values,delta_values,(1/reps)*successes_genBGAMP); colorbar
+  set(gca,'YDir','normal')
+  set(gca,'YTick',rho_values)
+  if grid_size(2)<10, set(gca,'XTick',delta_values); end
+  ylabel('rho')
+  xlabel('delta')
+  title('genBGAMP')
+  grid on
+
+else
+
+  % print success rate
+  EMBGAMP_success_rate = successes_EMBGAMP/rep
+  successes_genBGAMP = successes_genBGAMP/rep
+
+end
+
+% plot phase transition curve
+if min(grid_size)>1
+  figure(3); clf;
+  regression_plot;
+  grid on;
+end
