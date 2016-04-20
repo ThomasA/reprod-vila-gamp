@@ -5,6 +5,7 @@
 newEM = false % set true to use new version of EMGMAMP
 disableDamp = true % set true to disable adaptive damping
 
+DISPLAY_OUTPUT = false;
 DEMO = 2;
 switch DEMO
   case 1 % full phase plane
@@ -120,41 +121,43 @@ for delta_idx = 1:grid_size(2)
     end
 end
 
-if DEMO==1
+%if DEMO==1
   save vila2011_results successes* rho_values delta_values reps
-end
+%end
 
 % display results
-if max(grid_size)>1
+if DISPLAY_OUTPUT
+  if max(grid_size)>1
 
-  % imagesc plot of success
-  figure(1); clf;
-  imagesc(rho_values,delta_values,(1/reps)*successes_EMBGAMP); colorbar
-  set(gca,'YDir','normal')
-  set(gca,'YTick',rho_values)
-  if grid_size(2)<10, set(gca,'XTick',delta_values); end
-  ylabel('rho')
-  xlabel('delta')
-  title('EMBGAMP')
-  grid on
+    % imagesc plot of success
+    figure(1); clf;
+    imagesc(rho_values,delta_values,(1/reps)*successes_EMBGAMP); colorbar
+    set(gca,'YDir','normal')
+    set(gca,'YTick',rho_values)
+    if grid_size(2)<10, set(gca,'XTick',delta_values); end
+    ylabel('rho')
+    xlabel('delta')
+    title('EMBGAMP')
+    grid on
 
-  % imagesc plot of success
-  figure(2); clf;
-  imagesc(rho_values,delta_values,(1/reps)*successes_genBGAMP); colorbar
-  set(gca,'YDir','normal')
-  set(gca,'YTick',rho_values)
-  if grid_size(2)<10, set(gca,'XTick',delta_values); end
-  ylabel('rho')
-  xlabel('delta')
-  title('genBGAMP')
-  grid on
+    % imagesc plot of success
+    figure(2); clf;
+    imagesc(rho_values,delta_values,(1/reps)*successes_genBGAMP); colorbar
+    set(gca,'YDir','normal')
+    set(gca,'YTick',rho_values)
+    if grid_size(2)<10, set(gca,'XTick',delta_values); end
+    ylabel('rho')
+    xlabel('delta')
+    title('genBGAMP')
+    grid on
 
-else
+  else
 
-  % print success rate
-  EMBGAMP_success_rate = successes_EMBGAMP/rep
-  successes_genBGAMP = successes_genBGAMP/rep
+    % print success rate
+    EMBGAMP_success_rate = successes_EMBGAMP/rep
+    successes_genBGAMP = successes_genBGAMP/rep
 
+  end
 end
 
 % plot phase transition curve
