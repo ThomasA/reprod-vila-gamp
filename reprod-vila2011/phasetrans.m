@@ -6,7 +6,7 @@ newEM = false % set true to use new version of EMGMAMP
 disableDamp = true % set true to disable adaptive damping
 
 DISPLAY_OUTPUT = false;
-DEMO = 2;
+DEMO = 1;
 switch DEMO
   case 1 % full phase plane
     grid_size = [30, 30];
