@@ -1,4 +1,10 @@
-load vila2011_results
+function regression_plot(filename)
+
+if exist('filename', 'var')
+    load(filename)
+else
+    load vila2011_results
+end
 
 transition_rho_values_EMBGAMP = zeros(size(delta_values));
 transition_rho_values_genBGAMP = zeros(size(delta_values));
