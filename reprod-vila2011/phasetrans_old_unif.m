@@ -122,7 +122,7 @@ for delta_idx = 1:grid_size(2)
 end
 
 %if DEMO==1
-  save vila2011_results successes* rho_values delta_values reps
+  save vila2011_results_old_unif successes* rho_values delta_values reps
 %end
 
 % display results
@@ -163,6 +163,6 @@ end
 % plot phase transition curve
 if min(grid_size)>1
   figure(3); clf;
-  regression_plot;
-  grid on;
+  regression_plot('vila2011_results_old_unif', ...
+                  'Simulated phase transition (old alg., unif. option true)');
 end
